@@ -1,0 +1,2 @@
+INSERT INTO icd9_group VALUES(1,1,'FAV01');
+INSERT INTO icd10_group VALUES(1,1,'FAV01');

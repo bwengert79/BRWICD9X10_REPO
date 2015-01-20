@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="no_help_available">
+      There is no help available at this time.
+    </string>
+
+    
+    <string name="topic_section1">
+    <![CDATA[
+<p>
+<h3>
+<font color="blue">
+BRW ICD9X10
+<br>
+ICD9 &lt;=&gt; ICD10 Translator
+</font>
+</h3>
+</p>
+
+<p>
+This app is your tool to easily translate between ICD9 and ICD10 codes.
+<br><br>
+Translation can go in either direction:
+<br> ICD9 =&gt; ICD10 
+<br> ICD10 =&gt; ICD9
+</p>
+
+<p>
+To translate simply tap on the desired code.
+</p>
+<p>
+<font color="blue">Search Tips:</font>
+<br>
+The default search will search for descriptions that contains the word or phrase you typed in. 
+<br>Examples:
+<br>Enter <b>knee</b> for a list of ICD codes that contains the word "<b>knee</b>".
+<br>Enter <b>open wound</b> for a list of ICD codes that contains the phrase "<b>open wound</b>".
+<br><br>
+More advanced searching can be performed with the use of the "&amp;" and "|" symbols.
+<br>Examples:
+<br>Enter <b>knee &amp; ankle</b> for a list of ICD codes that contains the word "<b>knee</b>" and the word "<b>ankle</b>".
+<br>Enter <b>knee | ankle</b> for a list of ICD codes that contains one or both of the words "<b>knee</b>" and "<b>ankle</b>".
+<br><br>
+To search for specific ICD codes, use the "#" symbol. This will search for ICD code that begin the with value you entered.
+<br>Example:
+<br>Enter <b>#015</b> for a list of ICD codes begin with "<b>015</b>".
+</p>
+
+<p>
+<font color="blue">Adding Favorites:</font>
+<br>
+When viewing search results, favorites can be stored in one of two ways:
+<br> - Long click a single item 
+<br> - Use the menu to store all items related to your search
+</p>
+<p>
+<font color="blue">Removing Favorites:</font>
+<br>
+When viewing favorites, favorites can be removed in one of two ways:
+<br> - Long click a single item 
+<br> - Use the menu to remove all items related to your search
+
+</p>
+      ]]>
+    </string>
+
+</resources>

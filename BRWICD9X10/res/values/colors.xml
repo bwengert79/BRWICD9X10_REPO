@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main_footer_bk">#dedede</color>
+    <color name="bluelight">#449DEF</color>
+    <color name="orangelight">#F3AE1B</color>
+    <color name="group_child_bk">#F2F2F2</color>    
+</resources>
