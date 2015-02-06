@@ -44,8 +44,8 @@ public class ICD9Fragment extends ICDFragment {
 		
 		Uri uri = icdSearch.isShowFavorites() ?  ICD9X10ContentProvider.CONTENT_URI_ICD9FAV : ICD9X10ContentProvider.CONTENT_URI_ICD9;
         
-		//For now limit the results to 1000 rows. Eventually I would like to implement 
-		//some sort of virtual scrolling using OFFSET and LIMIT
+		//For now limit the results to the number of rows specified by QUERY_PARAMETER_LIMIT. 
+		//Eventually I would like to implement some sort of virtual scrolling using OFFSET and LIMIT.
 		uri = uri.buildUpon()
 				.appendQueryParameter(ICD9X10ContentProvider.QUERY_PARAMETER_LIMIT, String.valueOf(icdSearch.getLimit()))
                 .build();
