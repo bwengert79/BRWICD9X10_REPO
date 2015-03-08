@@ -58,7 +58,6 @@ public final class ICDFavoriteManager {
 
 		@Override
 		protected void onInsertComplete(int token, Object cookie, Uri uri) {
-			//ICDFavoriteManager theManager = mManager.get();
 			if(token == TOKEN_ADD_FAVORITE) {
 				AppLog.d(TAG, "Favorite added");
 			}
@@ -66,7 +65,6 @@ public final class ICDFavoriteManager {
 
 		@Override
 		protected void onDeleteComplete(int token, Object cookie, int result) {
-			//ICDFavoriteManager theManager = mManager.get();
 			if(token == TOKEN_DEL_FAVORITE) {
 				AppLog.d(TAG, "Favorite deleted");
 			}

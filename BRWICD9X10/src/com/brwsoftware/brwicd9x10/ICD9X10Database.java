@@ -190,23 +190,6 @@ public class ICD9X10Database {
         public static final String DEFAULT_SORT_ORDER = "icd9_code ASC";
     }
     
-/*    public static final class ICD9GEM implements BaseColumns {
-
-        private ICD9GEM() {}
-        
-        public static final String TABLE_NAME = "icd9_gem";
-        
-        public static final String ICD9_CODE = "icd9_code";
-        public static final String ICD10_CODE = "icd10_code";
-        public static final String APPROX_FLAG = "approx_flag";
-        public static final String NOMAP_FLAG = "nomap_flag";
-        public static final String COMBO_FLAG = "combo_flag";
-        public static final String SCENARIO_FLAG = "scenario_flag";
-        public static final String CHOICE_FLAG = "choice_flag";
-
-        public static final String DEFAULT_SORT_ORDER = "icd9_code ASC";
-    }*/
-    
     public static final class ICD10 implements BaseColumns {
 
         private ICD10() {}
@@ -218,23 +201,6 @@ public class ICD9X10Database {
 
         public static final String DEFAULT_SORT_ORDER = "icd10_code ASC";
     }
-
-/*    public static final class ICD10GEM implements BaseColumns {
-
-        private ICD10GEM() {}
-        
-        public static final String TABLE_NAME = "icd10_gem";
-        
-        public static final String ICD9_CODE = "icd9_code";
-        public static final String ICD10_CODE = "icd10_code";
-        public static final String APPROX_FLAG = "approx_flag";
-        public static final String NOMAP_FLAG = "nomap_flag";
-        public static final String COMBO_FLAG = "combo_flag";
-        public static final String SCENARIO_FLAG = "scenario_flag";
-        public static final String CHOICE_FLAG = "choice_flag";
-
-        public static final String DEFAULT_SORT_ORDER = "icd10_code ASC";
-    }*/
     
     public static final class ICD9GROUP implements BaseColumns {
 

@@ -257,7 +257,13 @@ public abstract class ICDFragment extends Fragment implements
 			mAdapter.setGroupCursor(null);
 		} else {
 			if (mAdapter.getGroupCount() > 0) {
-				mAdapter.setChildrenCursor(loader.getId(), null);
+				try {
+					//Crash reports indicated NullPointerException being thrown from within setChildrenCursor.
+					//Seems to be happening on first-run scenarios.
+					mAdapter.setChildrenCursor(loader.getId(), null);
+				} catch (NullPointerException e) {
+					AppLog.w(TAG, "setChildrenCursor - NullPointerException: " + e.getMessage());
+				}
 			}
 		}
 	}
