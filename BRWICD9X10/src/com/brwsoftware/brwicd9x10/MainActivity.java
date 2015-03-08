@@ -71,8 +71,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		//getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
@@ -82,9 +80,6 @@ public class MainActivity extends Activity {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		//int itemId = item.getItemId();
-		//if (itemId == R.id.action_settings) {
-		//}
 		return super.onOptionsItemSelected(item);
 	}
 
