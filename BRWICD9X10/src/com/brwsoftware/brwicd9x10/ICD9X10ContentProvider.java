@@ -1,7 +1,5 @@
 package com.brwsoftware.brwicd9x10;
 
-import java.util.Map.Entry;
-
 import com.brwsoftware.brwicd9x10.ICD9X10Database.*;
 
 import android.annotation.TargetApi;
@@ -116,30 +114,22 @@ public final class ICD9X10ContentProvider extends ContentProvider {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT OR IGNORE INTO ");
         sql.append(tableName);
-        sql.append('(');
 
-        Object[] bindArgs = null;
         int size = (values != null && values.size() > 0) ? values.size() : 0;
         if (size > 0) {
-            bindArgs = new Object[size];
-            int i = 0;
-            
-			// solution for API < 11
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-				for (Entry<String, Object> item : values.valueSet()) {
-					String colName = item.getKey();
-					sql.append((i > 0) ? "," : "");
-					sql.append(colName);
-					bindArgs[i++] = values.get(colName);
-				}
-			} else {
-				for (String colName : values.keySet()) {
-					sql.append((i > 0) ? "," : "");
-					sql.append(colName);
-					bindArgs[i++] = values.get(colName);
-				}
-			}      
-            
+            sql.append('(');
+    		switch (uriType) {
+    		case URI_CODE.ICD9FAV_LIST:
+    			sql.append(ICD9GROUPITEM.GROUP_ID);
+    			sql.append(",");
+    			sql.append(ICD9GROUPITEM.ICD9_ID);
+    			break;
+    		case URI_CODE.ICD10FAV_LIST:
+    			sql.append(ICD10GROUPITEM.GROUP_ID);
+    			sql.append(",");
+    			sql.append(ICD10GROUPITEM.ICD10_ID);
+    			break;
+    		}
             sql.append(')');            
         } else {
         	throw new IllegalArgumentException("Must supply column names");

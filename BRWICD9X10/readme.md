@@ -11,3 +11,6 @@ Additional descriptions can be found [here](https://sites.google.com/site/brwsof
 
 #### Release Status:
 * Currently in beta
+* 03/08/2015 - Release v1.0.0
+* 09/21/2015 - Release v1.0.1
+*  Bug fix - Saving query results to favorites not working on Android 5.x
