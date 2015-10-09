@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.brwsoftware.brwicd9x10"
-    android:versionCode="4"
-    android:versionName="1.0.1" >
+    android:versionCode="5"
+    android:versionName="1.1.0" >
 
     <uses-sdk
         android:minSdkVersion="7"
@@ -20,7 +20,6 @@
             android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -53,7 +52,17 @@
             android:theme="@style/ActivityTheme.OnlyTitle"
             android:launchMode="singleTop">
         </activity>
-
+        
+        <activity
+            android:name="FoldersActivity"
+        	android:parentActivityName="com.brwsoftware.brwicd9x10.ICDActivity" 
+            android:label="Folders"
+            android:launchMode="singleTop" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.brwsoftware.brwicd9x10.ICDActivity" />
+        </activity>
+        
         <provider
             android:name="ICD9X10ContentProvider"
             android:authorities="com.brwsoftware.brwicd9x10.contentprovider"

@@ -1,12 +1,15 @@
 package com.brwsoftware.brwicd9x10;
 
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.view.LayoutInflater;
@@ -25,7 +28,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	public final static String EXTRA_ICDTYPE = "com.brwsoftware.MainActivity.ICDTYPE";
+	private int mDatabaseAction = ICD9X10Database.DATABASE_ACTION_NONE;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,7 @@ public class MainActivity extends Activity {
                 case 0:
                 case 1:
                 	Intent intent = new Intent(getApplicationContext(), ICDActivity.class);
-                	intent.putExtra(EXTRA_ICDTYPE, position);
+                	intent.putExtra(AppValue.INTENT_EXTRA_ICDORDINAL, position);
                 	startActivity(intent);
                 	break;
                 case 2:
@@ -74,8 +77,39 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	void OnDatabaseInitialized() {
-		ICDFavoriteManager.getInstance().initialize(getContentResolver());
+		
+		//Upon first create or upgrade initialize folder related items to known values
+		if (mDatabaseAction == ICD9X10Database.DATABASE_ACTION_CREATE ||
+				mDatabaseAction == ICD9X10Database.DATABASE_ACTION_UPGRADE) {
+			
+			boolean needCommit = false;
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+			SharedPreferences.Editor editPref = sharedPref.edit();
+			
+			//ICD9 Folder
+			if(sharedPref.getInt(AppValue.PREFKEY_CURRENT_ICD9_FOLDER_ID, 0) == 0) {
+				editPref.putInt(AppValue.PREFKEY_CURRENT_ICD9_FOLDER_ID, AppValue.MY_FAVORITES_FOLDER_ID);
+				editPref.putString(AppValue.PREFKEY_CURRENT_ICD9_FOLDER_NAME, AppValue.MY_FAVORITES_FOLDER_NAME);
+				needCommit = true;
+			}
+			
+			//ICD10 Folder
+			if(sharedPref.getInt(AppValue.PREFKEY_CURRENT_ICD10_FOLDER_ID, 0) == 0) {
+				editPref.putInt(AppValue.PREFKEY_CURRENT_ICD10_FOLDER_ID, AppValue.MY_FAVORITES_FOLDER_ID);
+				editPref.putString(AppValue.PREFKEY_CURRENT_ICD10_FOLDER_NAME, AppValue.MY_FAVORITES_FOLDER_NAME);
+				needCommit = true;
+			}
+			
+			if (needCommit) {
+				if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.GINGERBREAD) {
+					editPref.commit();
+				} else {
+					editPref.apply();
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -87,6 +121,7 @@ public class MainActivity extends Activity {
 
 		ProgressDialog mDlg;
 		ICD9X10Database.OpenHelper mDbHelper;
+		RuntimeException mRuntimeException = null;
 
 		protected class MyListener implements
 				ICD9X10Database.OpenHelper.Listener {
@@ -94,6 +129,19 @@ public class MainActivity extends Activity {
 			@Override
 			public void OnProgress(String msg) {
 				publishProgress(msg);
+			}
+
+			@Override
+			public void OnError(String msg, Exception e) {
+				//Capture exception info to be thrown later
+				mRuntimeException = new RuntimeException(msg, e);
+				
+				publishProgress(msg);				
+			}
+
+			@Override
+			public void OnAction(int action) {
+				mDatabaseAction = action;
 			}
 		}
 
@@ -124,6 +172,7 @@ public class MainActivity extends Activity {
 			mDlg.show();
 		}
 
+		@Override
 		protected Void doInBackground(Void... param) {
 			// This will trigger first time create
 			mDbHelper.getWritableDatabase();
@@ -146,7 +195,16 @@ public class MainActivity extends Activity {
 				mDlg.dismiss();
 			}
 			unlockScreenOrientation();
-			OnDatabaseInitialized();
+			
+			//If an error occurred during the create or upgrade process 
+			//the database is most likely in an incomplete or corrupt state.
+			//I'm going to re-throw the exception that was captured and force the app to shutdown.
+			//Note: onPostExecute operates on the UI thread, so we can throw the exception here and kill the app
+			if(mRuntimeException != null) {
+				throw mRuntimeException;
+			} else {
+				OnDatabaseInitialized();
+			}			
 		}
 	}
 

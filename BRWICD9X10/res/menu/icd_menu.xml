@@ -9,21 +9,39 @@
         myapp:showAsAction="ifRoom|withText">
     </item>
     <item
-        android:id="@+id/action_favorites"
+        android:id="@+id/action_folder_view"
         android:checkable="true"
         android:checked="false"
         android:icon="@drawable/ic_menu_star_off"
-        android:title="@string/action_favorites"
+        android:title="@string/action_folder_view"
         myapp:showAsAction="ifRoom|withText">
     </item>
+    <item
+        android:id="@+id/action_add_to_folder"
+        android:title="@string/action_add_to_folder"
+        myapp:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/action_del_from_folder"
+        android:title="@string/action_del_from_folder"
+        myapp:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/action_set_current_folder"
+        android:title="@string/action_set_current_folder"
+        myapp:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/action_manage_folders"
+        android:title="@string/action_manage_folders"
+        myapp:showAsAction="never">
+    </item>    
     <item
         android:id="@+id/action_reset_search"
         android:title="@string/action_reset_search"
         myapp:showAsAction="never">
-    </item>
-    <item android:id="@+id/action_add_favorite" android:title="@string/action_add_favorite" myapp:showAsAction="never">
-    </item><item android:id="@+id/action_del_favorite" android:title="@string/action_del_favorite" myapp:showAsAction="never">
-    </item><item
+    </item>    
+    <item
         android:id="@+id/action_settings"
         android:title="@string/action_settings"
         myapp:showAsAction="never">
@@ -33,7 +51,4 @@
         android:title="@string/action_help"
         myapp:showAsAction="never">
     </item>
-    
-    
-
 </menu>

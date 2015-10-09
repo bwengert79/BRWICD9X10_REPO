@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.net.Uri;
+
+import com.brwsoftware.brwicd9x10.ICD9X10ContentProvider.URI_PATH;
 import com.brwsoftware.brwicd9x10.ICD9X10Database.*;
 
 public final class ICD9X10QueryBuilder {
@@ -17,6 +20,7 @@ public final class ICD9X10QueryBuilder {
 		private String mSelection;
 		private String[] mSelectionArgs;
 		private String[] mProjection;
+		private Uri mUri;
 		
 		public String getSelection() {
 			return mSelection;
@@ -30,17 +34,22 @@ public final class ICD9X10QueryBuilder {
 		public String[] getProjection() {
 			return mProjection;
 		}
+		public Uri getUri() {
+			return mUri;
+		}
 	}
 	
 	public static final class BrowseParam{
-		private boolean mBrowseFavorites;
+		private boolean mBrowseByFolder;
 		private String mRawSearchValue;
+		private String mFolderName;
 		
-		public boolean isBrowseFavorites() {
-			return mBrowseFavorites;
+		public boolean isBrowseByFolder() {
+			return mBrowseByFolder;
 		}
-		public void setBrowseFavorites(boolean value) {
-			mBrowseFavorites = value;
+		public void setBrowseByFolder(boolean browseByFolder, String folderName) {
+			mBrowseByFolder = browseByFolder;
+			mFolderName = browseByFolder ? folderName : null;
 		}
 		public String getRawSearchValue() {
 			return mRawSearchValue;
@@ -48,18 +57,14 @@ public final class ICD9X10QueryBuilder {
 		public void setRawSearchValue(String value) {
 			mRawSearchValue = value;
 		}
+		public String getFolderName() {
+			return mFolderName;
+		}
 	}
 	
-	public static final class FavoriteParam{
-		private int mGroupID;
+	public static final class SubQueryParam{
 		private String mRawSearchValue;
-		
-		public int getGroupID() {
-			return mGroupID;
-		}
-		public void setGroupID(int value) {
-			mGroupID = value;
-		}
+
 		public String getRawSearchValue() {
 			return mRawSearchValue;
 		}
@@ -85,24 +90,24 @@ public final class ICD9X10QueryBuilder {
 		String[] projection = { ICD9._ID, ICD9.ICD9_CODE, ICD9.LONG_DESC };
 		return projection;
 	}
-	private static String[] getICD9FavProjection() {
-		String[] projection = { "icd9_id as _id", ICD9FAV01VIEW.ICD9_CODE, ICD9FAV01VIEW.LONG_DESC };
+	private static String[] getICD9FolderProjection() {
+		String[] projection = { "icd9_id as _id", ICD9FOLDERVIEW.ICD9_CODE, ICD9FOLDERVIEW.LONG_DESC };
 		return projection;
 	}
 	private static String[] getICD9X10Projection() {
-		String[] projection = { "icd10_id as _id",/* ICD9X10VIEW.ICD10_ID,*/ ICD9X10VIEW.ICD10_CODE, ICD9X10VIEW.ICD10_LONG_DESC };
+		String[] projection = { "icd10_id as _id", ICD9X10VIEW.ICD10_CODE, ICD9X10VIEW.ICD10_LONG_DESC };
 		return projection;
 	}
 	private static String[] getICD10Projection() {
 		String[] projection = { ICD10._ID, ICD10.ICD10_CODE, ICD10.LONG_DESC };
 		return projection;
 	}	
-	private static String[] getICD10FavProjection() {
-		String[] projection = { "icd10_id as _id", ICD10FAV01VIEW.ICD10_CODE, ICD10FAV01VIEW.LONG_DESC };
+	private static String[] getICD10FolderProjection() {
+		String[] projection = { "icd10_id as _id", ICD10FOLDERVIEW.ICD10_CODE, ICD10FOLDERVIEW.LONG_DESC };
 		return projection;
 	}
 	private static String[] getICD10X9Projection() {
-		String[] projection = { "icd9_id as _id",/*ICD10X9VIEW.ICD9_ID,*/ ICD10X9VIEW.ICD9_CODE, ICD10X9VIEW.ICD9_LONG_DESC };
+		String[] projection = { "icd9_id as _id", ICD10X9VIEW.ICD9_CODE, ICD10X9VIEW.ICD9_LONG_DESC };
 		return projection;
 	}
 	
@@ -234,9 +239,9 @@ public final class ICD9X10QueryBuilder {
 	public static QueryParts browseICD9All(BrowseParam theParam) {
 		QueryParts theQueryParts = new QueryParts();
 
-		if (theParam.isBrowseFavorites()) {
-			theQueryParts.mTitle = "Browsing all ICD9 Favorites";
-			theQueryParts.mProjection = getICD9FavProjection();
+		if (theParam.isBrowseByFolder()) {
+			theQueryParts.mTitle = "Browsing all ICD9 in folder " + theParam.getFolderName();
+			theQueryParts.mProjection = getICD9FolderProjection();
 		} else {
 			theQueryParts.mTitle = "Browsing all ICD9";
 			theQueryParts.mProjection = getICD9Projection();
@@ -247,9 +252,9 @@ public final class ICD9X10QueryBuilder {
 
 	public static QueryParts browseICD9Code(BrowseParam theParam) {
 		QueryParam param = new QueryParam();
-		param.mProjection = theParam.isBrowseFavorites() ? getICD9FavProjection() : getICD9Projection();
+		param.mProjection = theParam.isBrowseByFolder() ? getICD9FolderProjection() : getICD9Projection();
 		param.mQueryColumn = ICD9.ICD9_CODE;
-		param.mTitle = theParam.isBrowseFavorites() ? "Favorite codes starting with " : "Codes starting with ";
+		param.mTitle = theParam.isBrowseByFolder() ? theParam.getFolderName() + " codes starting with " : "Codes starting with ";
 		param.mRawSearchValue = theParam.getRawSearchValue();
 		
 		return browseCode(param);
@@ -257,9 +262,9 @@ public final class ICD9X10QueryBuilder {
 	
 	public static QueryParts browseICD9Desc(BrowseParam theParam) {
 		QueryParam param = new QueryParam();
-		param.mProjection = theParam.isBrowseFavorites() ? getICD9FavProjection() : getICD9Projection();
+		param.mProjection = theParam.isBrowseByFolder() ? getICD9FolderProjection() : getICD9Projection();
 		param.mQueryColumn = ICD9.LONG_DESC;
-		param.mTitle = theParam.isBrowseFavorites() ? "Favorites containing " : "Descriptions containing ";
+		param.mTitle = theParam.isBrowseByFolder() ? theParam.getFolderName() + " containing " : "Descriptions containing ";
 		param.mRawSearchValue = theParam.getRawSearchValue();
 		
 		return browseDesc(param);
@@ -268,9 +273,9 @@ public final class ICD9X10QueryBuilder {
 	public static QueryParts browseICD10All(BrowseParam theParam){
 		QueryParts theQueryParts = new QueryParts();
 
-		if (theParam.isBrowseFavorites()) {
-			theQueryParts.mTitle = "Browsing all ICD10 Favorites";
-			theQueryParts.mProjection = getICD10FavProjection();
+		if (theParam.isBrowseByFolder()) {
+			theQueryParts.mTitle = "Browsing all ICD10 in folder " + theParam.getFolderName();
+			theQueryParts.mProjection = getICD10FolderProjection();
 		} else {
 			theQueryParts.mTitle = "Browsing all ICD10";
 			theQueryParts.mProjection = getICD10Projection();
@@ -280,9 +285,9 @@ public final class ICD9X10QueryBuilder {
 
 	public static QueryParts browseICD10Code(BrowseParam theParam) {
 		QueryParam param = new QueryParam();
-		param.mProjection = theParam.isBrowseFavorites() ? getICD10FavProjection() : getICD10Projection();
+		param.mProjection = theParam.isBrowseByFolder() ? getICD10FolderProjection() : getICD10Projection();
 		param.mQueryColumn = ICD10.ICD10_CODE;
-		param.mTitle = theParam.isBrowseFavorites() ? "Favorite codes starting with " : "Codes starting with ";
+		param.mTitle = theParam.isBrowseByFolder() ? theParam.getFolderName() + " codes starting with " : "Codes starting with ";
 		param.mRawSearchValue = theParam.getRawSearchValue();
 		
 		return browseCode(param);
@@ -290,33 +295,37 @@ public final class ICD9X10QueryBuilder {
 	
 	public static QueryParts browseICD10Desc(BrowseParam theParam) {
 		QueryParam param = new QueryParam();
-		param.mProjection = theParam.isBrowseFavorites() ? getICD10FavProjection() : getICD10Projection();
+		param.mProjection = theParam.isBrowseByFolder() ? getICD10FolderProjection() : getICD10Projection();
 		param.mQueryColumn = ICD10.LONG_DESC;
-		param.mTitle = theParam.isBrowseFavorites() ? "Favorites containing " : "Descriptions containing ";
+		param.mTitle = theParam.isBrowseByFolder() ? theParam.getFolderName() + " containing " : "Descriptions containing ";
 		param.mRawSearchValue = theParam.getRawSearchValue();
 		
 		return browseDesc(param);
 	}
 
-	public static QueryParts drillICD9X10(String ICD9ID){
+	public static QueryParts drillICD9X10(int ICD9ID){
 		QueryParts theQueryParts = new QueryParts();
 		theQueryParts.mProjection = getICD9X10Projection();
-		theQueryParts.mSelection = ICD9X10VIEW.ICD9_ID  + " = ?";
-		theQueryParts.mSelectionArgs = new String[] { ICD9ID };	
-			
+		theQueryParts.mUri = ICD9X10ContentProvider.CONTENT_URI_ICD9S
+				.buildUpon()
+				.appendPath(String.valueOf(ICD9ID))
+				.appendPath(URI_PATH.ICD10S)
+				.build();				
 		return theQueryParts;
 	}
 
-	public static QueryParts drillICD10X9(String ICD10ID){
+	public static QueryParts drillICD10X9(int ICD10ID){
 		QueryParts theQueryParts = new QueryParts();
 		theQueryParts.mProjection = getICD10X9Projection();
-		theQueryParts.mSelection = ICD10X9VIEW.ICD10_ID  + " = ?";
-		theQueryParts.mSelectionArgs = new String[] { ICD10ID };	
-			
+		theQueryParts.mUri = ICD9X10ContentProvider.CONTENT_URI_ICD10S
+				.buildUpon()
+				.appendPath(String.valueOf(ICD10ID))
+				.appendPath(URI_PATH.ICD9S)
+				.build();			
 		return theQueryParts;
 	}
 	
-	public static String getICD9FavoriteSubQuery(FavoriteParam theParam) {
+	public static String getICD9FolderSubQuery(SubQueryParam theParam) {
 		QueryParts queryParts;
 		QueryParam queryParam = new QueryParam();
 		queryParam.mRawSearchValue = theParam.getRawSearchValue();
@@ -334,23 +343,11 @@ public final class ICD9X10QueryBuilder {
 		{
 			strSelection = strSelection.replaceFirst("\\?", "'" + arg + "'");
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("select ");
-		if(theParam.getGroupID() == 0) {
-			sb.append("_id from ");
-		} else {
-			sb.append(theParam.getGroupID());
-			sb.append(", _id from ");		
-		}
-		sb.append(ICD9.TABLE_NAME);
-		sb.append(" where ");
-		sb.append(strSelection);
 
-		return sb.toString();		
+		return strSelection;		
 	}
 	
-	public static String getICD10FavoriteSubQuery(FavoriteParam theParam) {
+	public static String getICD10FolderSubQuery(SubQueryParam theParam) {
 		QueryParts queryParts;
 		QueryParam queryParam = new QueryParam();
 		queryParam.mRawSearchValue = theParam.getRawSearchValue();
@@ -368,19 +365,7 @@ public final class ICD9X10QueryBuilder {
 		{
 			strSelection = strSelection.replaceFirst("\\?", "'" + arg + "'");
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("select ");
-		if(theParam.getGroupID() == 0) {
-			sb.append("_id from ");
-		} else {
-			sb.append(theParam.getGroupID());
-			sb.append(", _id from ");		
-		}
-		sb.append(ICD10.TABLE_NAME);
-		sb.append(" where ");
-		sb.append(strSelection);
 
-		return sb.toString();		
+		return strSelection;		
 	}
 }

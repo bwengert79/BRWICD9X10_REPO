@@ -20,12 +20,17 @@ public class ICD9X10Database {
     private ICD9X10Database() {}
     
     public static final String DATABASE_NAME = "icd9x10.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_ACTION_NONE = 0;
+    public static final int DATABASE_ACTION_CREATE = 1;
+    public static final int DATABASE_ACTION_UPGRADE = 2;
     
     public static class OpenHelper extends SQLiteOpenHelper {
 
     	public interface Listener {
     		void OnProgress(String msg);
+    		void OnError(String msg, Exception e);
+    		void OnAction(int action);
     	}
     	
     	private static final String TAG = "ICD9X10OpenHelper";
@@ -55,6 +60,14 @@ public class ICD9X10Database {
     	
 		protected void PublishProgress(String msg){
 			if(mListener != null) mListener.OnProgress(msg);
+		}
+		
+		protected void PublishError(String msg, Exception e){
+			if(mListener != null) mListener.OnError(msg, e);
+		}
+		
+		protected void PublishAction(int action){
+			if(mListener != null) mListener.OnAction(action);
 		}
 		
      	private void ProcessZipFile(SQLiteDatabase db, String ZipFileName, boolean parseCommand) throws Exception{    		
@@ -94,7 +107,7 @@ public class ICD9X10Database {
 						}
 					}
 
-					String[] sqlcmds = sb.toString().split(";");
+					String[] sqlcmds = sb.toString().split("\\$");
 					for (String sql : sqlcmds) {
 						String sqlTrimmed = sql.trim();
 						if(sqlTrimmed.length() > 0) {
@@ -132,7 +145,7 @@ public class ICD9X10Database {
 				ProcessZipFile(db, "schema_tables.zip", false);
 				
 	    		PublishProgress("Importing Data: Groups");
-				ProcessZipFile(db, "data_group.zip", false);
+				ProcessZipFile(db, "data_folder.zip", false);
 
 	    		PublishProgress("Importing Data: ICD9");
 	    		ProcessZipFile(db, "data_icd9.zip", false);
@@ -149,6 +162,9 @@ public class ICD9X10Database {
 	    		PublishProgress("Importing Data: Sequence");
 				ProcessZipFile(db, "data_sequence.zip", false);
 
+	    		PublishProgress("Creating ICD9x10 Tiggers");
+				ProcessZipFile(db, "schema_triggers.zip", true);
+
 	    		PublishProgress("Creating ICD9x10 Views");
 				ProcessZipFile(db, "schema_views.zip", true);
 
@@ -158,9 +174,11 @@ public class ICD9X10Database {
 				db.setTransactionSuccessful();
 	    		
 				PublishProgress("ICD9x10 Database is ready");
+				PublishAction(DATABASE_ACTION_CREATE);
 	    		
 			} catch (Exception e) {
 				AppLog.e(TAG, "Failure creating icd9x10 database", e);
+				PublishError("ICD9x10 Database create failed", e);
 			} finally {
 				if (db.inTransaction()) {
 					db.endTransaction();
@@ -173,8 +191,42 @@ public class ICD9X10Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// TODO Auto-generated method stub
-    		AppLog.i(TAG, "onUpgrade");
+    		AppLog.i(TAG, "onUpgrade: upgrading icd9x10 database");
+    		PublishProgress("Upgrading ICD9x10 Database");
+
+    		long startTime = SystemClock.elapsedRealtime();
+			try {
+				db.beginTransaction();
+
+				switch (oldVersion) {
+				case 1:
+					PublishProgress("Applying Upgrade v02");
+					ProcessZipFile(db, "upgrade_v02.zip", true);
+					// Note: remove the break for incremental upgrade (1 -> 2,
+					// 1->2->3, etc)
+					break;
+				default:
+					throw new IllegalStateException(
+							"onUpgrade() with unknown oldVersion " + oldVersion);
+				}
+				
+				db.setTransactionSuccessful();
+
+				PublishProgress("ICD9x10 Database is ready");
+				PublishAction(DATABASE_ACTION_UPGRADE);
+	    		
+			} catch (Exception e) {
+				AppLog.e(TAG, "Failure upgrading icd9x10 database", e);
+				PublishError("ICD9x10 Database upgrade failed", e);
+			} finally {
+				if (db.inTransaction()) {
+					db.endTransaction();
+				}
+			}
+			
+			long endTime = SystemClock.elapsedRealtime();
+			double elapsedSeconds = (endTime - startTime) / 1000.0;
+    		AppLog.i(TAG, "onUpgrade exit: duration - %f seconds", elapsedSeconds);
 		}
     }
     
@@ -202,81 +254,53 @@ public class ICD9X10Database {
         public static final String DEFAULT_SORT_ORDER = "icd10_code ASC";
     }
     
-    public static final class ICD9GROUP implements BaseColumns {
+    public static final class ICD9FOLDER implements BaseColumns {
 
-        private ICD9GROUP() {}
+        private ICD9FOLDER() {}
         
-        public static final String TABLE_NAME = "icd9_group";
+        public static final String TABLE_NAME = "icd9_folder";
         
-        public static final String TYPE = "type";
+         public static final String NAME = "name";
+
+        public static final String DEFAULT_SORT_ORDER = "name COLLATE NOCASE ASC";
+    }
+        
+    public static final class ICD10FOLDER implements BaseColumns {
+
+        private ICD10FOLDER() {}
+        
+        public static final String TABLE_NAME = "icd10_folder";
+        
         public static final String NAME = "name";
 
-        public static final String DEFAULT_SORT_ORDER = "type ASC, name ASC";
-    }
-        
-    public static final class ICD10GROUP implements BaseColumns {
-
-        private ICD10GROUP() {}
-        
-        public static final String TABLE_NAME = "icd10_group";
-        
-        public static final String TYPE = "type";	//1-system, 2-user
-        public static final String NAME = "name";
-
-        public static final String DEFAULT_SORT_ORDER = "type ASC, name ASC";
+        public static final String DEFAULT_SORT_ORDER = "name COLLATE NOCASE ASC";
     }
 
-    public static final class ICD9GROUPITEM implements BaseColumns {
+    public static final class ICD9FOLDERITEM implements BaseColumns {
 
-        private ICD9GROUPITEM() {}
+        private ICD9FOLDERITEM() {}
         
-        public static final String TABLE_NAME = "icd9_groupitem";
+        public static final String TABLE_NAME = "icd9_folderitem";
         
-        public static final String GROUP_ID = "group_id";
+        public static final String FOLDER_ID = "folder_id";
         public static final String ICD9_ID = "icd9_id";
 
-        public static final String DEFAULT_SORT_ORDER = "group_id ASC, icd9_id ASC";
+        public static final String DEFAULT_SORT_ORDER = "folder_id ASC, icd9_id ASC";
     }
 
-    public static final class ICD10GROUPITEM implements BaseColumns {
+    public static final class ICD10FOLDERITEM implements BaseColumns {
 
-        private ICD10GROUPITEM() {}
+        private ICD10FOLDERITEM() {}
         
-        public static final String TABLE_NAME = "icd10_groupitem";
+        public static final String TABLE_NAME = "icd10_folderitem";
         
-        public static final String GROUP_ID = "group_id";
+        public static final String FOLDER_ID = "folder_id";
         public static final String ICD10_ID = "icd10_id";
 
-        public static final String DEFAULT_SORT_ORDER = "group_id ASC, icd10_id ASC";
+        public static final String DEFAULT_SORT_ORDER = "folder_id ASC, icd10_id ASC";
     }
 
-    public static final class ICD9FAV01VIEW {
-
-        private ICD9FAV01VIEW() {}
-        
-        public static final String TABLE_NAME = "icd9_fav01_view";
-        
-        public static final String ICD9_ID = "icd9_id";
-        public static final String ICD9_CODE = "icd9_code";
-        public static final String LONG_DESC = "long_desc";
-
-        public static final String DEFAULT_SORT_ORDER = "type ASC, name ASC";
-    }
-
-    public static final class ICD10FAV01VIEW {
-
-        private ICD10FAV01VIEW() {}
-        
-        public static final String TABLE_NAME = "icd10_fav01_view";
-        
-        public static final String ICD10_ID = "icd10_id";
-        public static final String ICD10_CODE = "icd10_code";
-        public static final String LONG_DESC = "long_desc";
-
-        public static final String DEFAULT_SORT_ORDER = "type ASC, name ASC";
-    }
-
-    public static final class ICD9X10VIEW {
+    public static final class ICD9X10VIEW implements BaseColumns {
 
         private ICD9X10VIEW() {}
         
@@ -292,7 +316,7 @@ public class ICD9X10Database {
         public static final String DEFAULT_SORT_ORDER = "icd10_code ASC";
     }
 
-    public static final class ICD10X9VIEW {
+    public static final class ICD10X9VIEW implements BaseColumns {
 
         private ICD10X9VIEW() {}
         
@@ -308,33 +332,33 @@ public class ICD9X10Database {
         public static final String DEFAULT_SORT_ORDER = "icd10_code ASC";
     }
 
-    public static final class ICD9GROUPUSERVIEW {
+    public static final class ICD9FOLDERVIEW implements BaseColumns {
 
-        private ICD9GROUPUSERVIEW() {}
+        private ICD9FOLDERVIEW() {}
         
-        public static final String TABLE_NAME = "icd9_group_user_view";
+        public static final String TABLE_NAME = "icd9_folder_view";
         
-        public static final String GROUP_ID = "group_id";
-        public static final String GROUP_NAME = "group_name";
+        public static final String FOLDER_ID = "folder_id";
+        public static final String FOLDER_NAME = "folder_name";
         public static final String ICD9_ID = "icd9_id";
         public static final String ICD9_CODE = "icd9_code";
         public static final String LONG_DESC = "long_desc";
 
-        public static final String DEFAULT_SORT_ORDER = "group_name ASC, icd9_code ASC";
+        public static final String DEFAULT_SORT_ORDER = "folder_name COLLATE NOCASE ASC, icd9_code ASC";
     }
 
-    public static final class ICD10GROUPUSERVIEW {
+    public static final class ICD10FOLDERVIEW implements BaseColumns {
 
-        private ICD10GROUPUSERVIEW() {}
+        private ICD10FOLDERVIEW() {}
         
-        public static final String TABLE_NAME = "icd10_group_user_view";
+        public static final String TABLE_NAME = "icd10_folder_view";
         
-        public static final String GROUP_ID = "group_id";
-        public static final String GROUP_NAME = "group_name";
+        public static final String FOLDER_ID = "folder_id";
+        public static final String FOLDER_NAME = "folder_name";
         public static final String ICD10_ID = "icd10_id";
         public static final String ICD10_CODE = "icd10_code";
         public static final String LONG_DESC = "long_desc";
 
-        public static final String DEFAULT_SORT_ORDER = "group_name ASC, icd10_code ASC";
+        public static final String DEFAULT_SORT_ORDER = "folder_name COLLATE NOCASE ASC, icd10_code ASC";
     }
 }

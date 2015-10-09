@@ -16,6 +16,7 @@ public class ICDActivity extends ActionBarActivity implements
 		ActionBar.TabListener, ActionBar.OnNavigationListener {
 
 	private ICDFragment[] mFragments = new ICDFragment[2];
+	private int mICDType = AppValue.ICDTYPE_9;
 	
 	private ICDFragment getFragment(int index) {
 		if (mFragments[index] == null) {
@@ -37,8 +38,8 @@ public class ICDActivity extends ActionBarActivity implements
 		super.onCreate(savedInstanceState);
 				
 		Intent intent = getIntent();
-		int icdType = intent.getIntExtra(MainActivity.EXTRA_ICDTYPE, 0);
-		
+		int navItem = intent.getIntExtra(AppValue.INTENT_EXTRA_ICDORDINAL, AppValue.ICDORDINAL_9);		
+
 		//ActionBar setup
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
@@ -47,7 +48,7 @@ public class ICDActivity extends ActionBarActivity implements
 		actionBar.setListNavigationCallbacks(ArrayAdapter.createFromResource(
 				this, R.array.icd_nav_spinner,
 				R.layout.icd_nav_spinner_item), this);//support_simple_spinner_dropdown_item
-		actionBar.setSelectedNavigationItem(icdType);
+		actionBar.setSelectedNavigationItem(navItem);
 	}
 
 	@Override
@@ -75,10 +76,18 @@ public class ICDActivity extends ActionBarActivity implements
 			onSearchRequested();
 			return true;
 		} else if (itemId == R.id.action_help) {
-			startActivity(new Intent(getApplicationContext(), HelpActivity.class));
+			startActivity(new Intent(getApplicationContext(),
+					HelpActivity.class));
 			return true;
 		} else if (itemId == R.id.action_settings) {
-			startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+			startActivity(new Intent(getApplicationContext(),
+					SettingsActivity.class));
+			return true;
+		} else if (itemId == R.id.action_manage_folders) {
+			Intent intent = new Intent(getApplicationContext(),
+					FoldersActivity.class);
+			intent.putExtra(AppValue.INTENT_EXTRA_ICDTYPE, mICDType);
+			startActivity(intent);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -104,6 +113,7 @@ public class ICDActivity extends ActionBarActivity implements
 
 	@Override
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+		mICDType = (itemPosition > 0) ? AppValue.ICDTYPE_10 : AppValue.ICDTYPE_9;
 		getSupportFragmentManager().beginTransaction()
 				.replace(android.R.id.content, getFragment(itemPosition))
 				.commit();

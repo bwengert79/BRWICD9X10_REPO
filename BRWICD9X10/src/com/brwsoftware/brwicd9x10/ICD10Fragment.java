@@ -5,15 +5,22 @@ import android.net.Uri;
 import android.support.v4.content.CursorLoader;
 import android.text.TextUtils;
 
+import com.brwsoftware.brwicd9x10.ICD9X10ContentProvider.URI_PATH;
 import com.brwsoftware.brwicd9x10.ICD9X10Database.ICD10;
-import com.brwsoftware.brwicd9x10.ICD9X10Database.ICD10GROUPITEM;
 import com.brwsoftware.brwicd9x10.ICD9X10Database.ICD10X9VIEW;
 
 public class ICD10Fragment extends ICDFragment {
-
+	
 	@Override
-	String getChildLabel() {
-		return "ICD9";
+	ICDAttributes getICDAttributes() {
+		ICDAttributes attr = new ICDAttributes();
+		
+		attr.setICDType(10);
+		attr.setChildLabel("ICD9");
+		attr.setPrefKeyFolderID(AppValue.PREFKEY_CURRENT_ICD10_FOLDER_ID);
+		attr.setPrefKeyFolderName(AppValue.PREFKEY_CURRENT_ICD10_FOLDER_NAME);
+		
+		return attr;
 	}
 
 	@Override
@@ -39,11 +46,16 @@ public class ICD10Fragment extends ICDFragment {
 		String searchValue = icdSearch.getSearchValue();
 		
 		ICD9X10QueryBuilder.BrowseParam browseParam = new ICD9X10QueryBuilder.BrowseParam();
-		browseParam.setBrowseFavorites(icdSearch.isShowFavorites());
+		browseParam.setBrowseByFolder(icdSearch.isFolderView(), icdSearch.getFolderName());
 		browseParam.setRawSearchValue(icdSearch.getSearchValue());
 		
-		Uri uri = icdSearch.isShowFavorites() ?  ICD9X10ContentProvider.CONTENT_URI_ICD10FAV : ICD9X10ContentProvider.CONTENT_URI_ICD10;
-        
+		Uri uri = icdSearch.isFolderView() ? ICD9X10ContentProvider.CONTENT_URI_ICD10FOLDERS
+				.buildUpon()
+				.appendPath(String.valueOf(icdSearch.getFolderID()))
+				.appendPath(URI_PATH.ICD10S)
+				.build()
+				: ICD9X10ContentProvider.CONTENT_URI_ICD10S;
+				
 		//For now limit the results to the number of rows specified by QUERY_PARAMETER_LIMIT. 
 		//Eventually I would like to implement some sort of virtual scrolling using OFFSET and LIMIT.
 		uri = uri.buildUpon()
@@ -77,12 +89,10 @@ public class ICD10Fragment extends ICDFragment {
 
 	@Override
 	ICDCursorLoader getNewChildCursorLoader(ICDSearch icdSearch) {
-		ICD9X10QueryBuilder.QueryParts qryParts = ICD9X10QueryBuilder.drillICD10X9(String.valueOf(icdSearch.getParentID()));
+		ICD9X10QueryBuilder.QueryParts qryParts = ICD9X10QueryBuilder.drillICD10X9(icdSearch.getParentID());
 
 		CursorLoader cursorLoader = new CursorLoader(getActivity(),
-				ICD9X10ContentProvider.CONTENT_URI_ICD10X9,
-				qryParts.getProjection(), qryParts.getSelection(),
-				qryParts.getSelectionArgs(), null);
+				qryParts.getUri(), qryParts.getProjection(), null, null, null);
 
 		ICDCursorLoader icdCursorLoader = new ICDCursorLoader();
 		icdCursorLoader.setCursorLoader(cursorLoader);
@@ -91,57 +101,58 @@ public class ICD10Fragment extends ICDFragment {
 	}
 	
 	@Override
-	void loadFavoriteAdd(ICDFavoriteManager.ICDFavorite icdFavorite) {
-		int groupId = ICDFavoriteManager.getInstance().getICD10FavGroupID();
-		if(icdFavorite.IsSingleItem()) {
-			ContentValues cv = new ContentValues();
-			cv.put(ICD10GROUPITEM.GROUP_ID, groupId);
-			cv.put(ICD10GROUPITEM.ICD10_ID, icdFavorite.getParentID());
+	void loadFolderAdd(ICDFolder icdFolder) {
+		if(icdFolder.IsSingleItem()) {
+			Uri uri = ICD9X10ContentProvider.CONTENT_URI_ICD10FOLDERS
+					.buildUpon()
+					.appendPath(String.valueOf(icdFolder.getFolderID()))
+					.appendPath(URI_PATH.ICD10S)
+					.appendPath(String.valueOf(icdFolder.getItemID()))
+					.build();
 			
-			icdFavorite.setUri(ICD9X10ContentProvider.CONTENT_URI_ICD10FAV);
-			icdFavorite.setContentValues(cv);
+			icdFolder.setUri(uri);
 		} else {
-			ICD9X10QueryBuilder.FavoriteParam favParam = new ICD9X10QueryBuilder.FavoriteParam();
-			favParam.setGroupID(groupId);
-			favParam.setRawSearchValue(icdFavorite.getSearchValue());
+			Uri uri = ICD9X10ContentProvider.CONTENT_URI_ICD10FOLDERS
+					.buildUpon()
+					.appendPath(String.valueOf(icdFolder.getFolderID()))
+					.appendPath(URI_PATH.ICD10S)
+					.build();
+			
+			ICD9X10QueryBuilder.SubQueryParam favParam = new ICD9X10QueryBuilder.SubQueryParam();
+			favParam.setRawSearchValue(icdFolder.getSearchValue());
 			
 			ContentValues cv = new ContentValues();
-			cv.put(ICD10GROUPITEM.GROUP_ID, 0);
-			cv.put(ICD10GROUPITEM.ICD10_ID, 0);
-			cv.put(ICD9X10ContentProvider.INSERT_FROM_SELECT, ICD9X10QueryBuilder.getICD10FavoriteSubQuery(favParam));
+			cv.put(ICD9X10ContentProvider.INSERT_FROM_SELECT, ICD9X10QueryBuilder.getICD10FolderSubQuery(favParam));
 			
-			icdFavorite.setUri(ICD9X10ContentProvider.CONTENT_URI_ICD10FAV);
-			icdFavorite.setContentValues(cv);
+			icdFolder.setUri(uri);
+			icdFolder.setContentValues(cv);
 		}		
 	}
 
 	@Override
-	void loadFavoriteDel(ICDFavoriteManager.ICDFavorite icdFavorite) {
-		int groupId = ICDFavoriteManager.getInstance().getICD10FavGroupID();
-		if(icdFavorite.IsSingleItem()) {
-			String[] selectionArgs = 
-				{
-					String.valueOf(groupId),
-					String.valueOf(icdFavorite.getParentID())
-				};
-			
-			icdFavorite.setUri(ICD9X10ContentProvider.CONTENT_URI_ICD10FAV);
-			icdFavorite.setSelection(ICD10GROUPITEM.GROUP_ID + " = ? and " + ICD10GROUPITEM.ICD10_ID + " = ?");
-			icdFavorite.setSelectionArgs(selectionArgs);
+	void loadFolderDel(ICDFolder icdFolder) {
+		if(icdFolder.IsSingleItem()) {
+			Uri uri = ICD9X10ContentProvider.CONTENT_URI_ICD10FOLDERS
+					.buildUpon()
+					.appendPath(String.valueOf(icdFolder.getFolderID()))
+					.appendPath(URI_PATH.ICD10S)
+					.appendPath(String.valueOf(icdFolder.getItemID()))
+					.build();
+			icdFolder.setUri(uri);
 		} else {
-			String[] selectionArgs = 
-				{
-					String.valueOf(groupId)
-				};
-			icdFavorite.setUri(ICD9X10ContentProvider.CONTENT_URI_ICD10FAV);
-			icdFavorite.setSelectionArgs(selectionArgs);
+			Uri uri = ICD9X10ContentProvider.CONTENT_URI_ICD10FOLDERS
+					.buildUpon()
+					.appendPath(String.valueOf(icdFolder.getFolderID()))
+					.appendPath(URI_PATH.ICD10S)
+					.build();
+			icdFolder.setUri(uri);
 			
-			if (TextUtils.isEmpty(icdFavorite.getSearchValue())) {
-				icdFavorite.setSelection(ICD10GROUPITEM.GROUP_ID + " = ?");
-			} else {
-				ICD9X10QueryBuilder.FavoriteParam favParam = new ICD9X10QueryBuilder.FavoriteParam();
-				favParam.setRawSearchValue(icdFavorite.getSearchValue());
-				icdFavorite.setSelection(ICD10GROUPITEM.GROUP_ID + " = ? and " + ICD10GROUPITEM.ICD10_ID + " in (" + ICD9X10QueryBuilder.getICD10FavoriteSubQuery(favParam) + ")");
+			if (!TextUtils.isEmpty(icdFolder.getSearchValue())) {
+				ICD9X10QueryBuilder.SubQueryParam favParam = new ICD9X10QueryBuilder.SubQueryParam();
+				favParam.setRawSearchValue(icdFolder.getSearchValue());
+				
+				icdFolder.setSelection(ICD9X10ContentProvider.DELETE_FROM_SELECT);
+				icdFolder.setSelectionArgs(new String[] {ICD9X10QueryBuilder.getICD10FolderSubQuery(favParam)});
 			}
 		}
 	}	

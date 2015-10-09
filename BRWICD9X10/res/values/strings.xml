@@ -5,7 +5,7 @@
     <string name="app_label">BRWICD9X10</string>    
     <string name="action_search">Search</string>
     <string name="action_reset_search">Reset Search</string>
-    <string name="action_favorites">Favorites</string>
+    <string name="action_folder_view">Folder View</string>
     <string name="action_settings">Settings</string>
     <string name="action_help">Help</string>
     <string name="hello_world">Hello world!</string>
@@ -13,9 +13,22 @@
     <string name="footer_text">BRW Software</string>
     <string name="item_desc">image</string>
     <string name="search_hint_browse">Description or #Code</string>
-    <string name="action_add_favorite">Add to Favorites</string>
-    <string name="action_del_favorite">Remove from Favorites</string>
+    <string name="action_add_to_folder">Add to Current Folder</string>
+    <string name="action_del_from_folder">Remove from Folder</string>
     <string name="pref_startup_fav_key">startup_fav</string>
-    <string name="pref_startup_fav_title">Start in favorites</string>
+    <string name="pref_startup_fav_title">Start in Folder View</string>
+    <string name="pref_reset_after_remove_key">reset_after_remove_from_folder</string>
+    <string name="pref_reset_after_remove_title">Reset after Remove</string>
+    <string name="pref_reset_after_remove_summary">Reset Search after Remove From Folder</string>
+
+    <string name="pref_folder_view_after_current_key">folder_view_after_current</string>
+    <string name="pref_folder_view_after_current_title">Folder View after Current</string>
+    <string name="pref_folder_view_after_current_summary">Enable Folder View after setting the Current Folder</string>
     
+    <string name="action_add_folder">New</string>
+    <string name="action_edit_folder">Rename</string>
+    <string name="action_delete_folder">Delete</string>
+    <string name="action_manage_folders">Manage Folders</string>
+    <string name="folder_input_label">Folder Name:</string>
+    <string name="action_set_current_folder">Set Current Folder</string>
 </resources>

@@ -45,19 +45,45 @@ More advanced searching can be performed with the use of the "&amp;" and "|" sym
 To search for specific ICD codes, use the "#" symbol. This will search for ICD code that begin the with value you entered.
 <br>Example:
 <br>Enter <b>#015</b> for a list of ICD codes begin with "<b>015</b>".
+<br><br>
+To return to browsing all items select <b>Reset Search</b> from the menu.
 </p>
 
 <p>
-<font color="blue">Adding Favorites:</font>
+<font color="blue">Managing Folders:</font>
 <br>
-When viewing search results, favorites can be stored in one of two ways:
+Customizable folders can be created to hold the ICD codes you select.
+<br>Folders can be created for both ICD9 and ICD10 codes.
+<br>Select the <b>Manage Folders</b> option from the menu to perform the following functions:
+<br> - Add new folders
+<br> - Delete folders (long click a single item)
+<br> - Rename folders (long click a single item)
+</p>
+
+<p>
+<font color="blue">Folder View</font>
+<br>
+When <b>Folder View</b> is enabled ICD codes will be displayed from the <b>Current Folder</b>.
+</p>
+
+<p>
+<font color="blue">The Current Folder</font>
+<br>
+When viewing search results, items will always be added to or removed from the <b>Current Folder</b>.  
+<br>Use the <b>Set Current Folder</b> menu option to set the <b>Current Folder</b>.
+</p>
+
+<p>
+<font color="blue">Adding to the Current Folder:</font>
+<br>
+When viewing search results, items can be added in one of two ways:
 <br> - Long click a single item 
 <br> - Use the menu to store all items related to your search
 </p>
 <p>
-<font color="blue">Removing Favorites:</font>
+<font color="blue">Removing from the Current Folder:</font>
 <br>
-When viewing favorites, favorites can be removed in one of two ways:
+When viewing a folder, items can be removed in one of two ways:
 <br> - Long click a single item 
 <br> - Use the menu to remove all items related to your search
 
